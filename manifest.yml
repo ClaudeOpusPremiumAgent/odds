@@ -1,0 +1,114 @@
+modules:
+  jira:projectPage:
+    - key: odds-page
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+      title: Odds
+  rovo:agent:
+    - key: odds-agent
+      name: Odds
+      description: Gives the chance that a Jira version ships by its release date, and
+        how well your team's forecasts have done.
+      prompt: resource:agent-res;prompt.txt
+      conversationStarters:
+        - Which of our versions are at risk?
+        - How calibrated are our forecasts?
+      actions:
+        - get-forecast
+        - record-forecast
+        - get-ledger
+  action:
+    - key: get-forecast
+      name: Get release forecast
+      function: getForecast
+      actionVerb: GET
+      description: Chance that each unreleased version of a Jira project ships by its
+        release date, with remaining work, finish-time range and how well the
+        model did on this team's own history.
+      inputs:
+        projectKey:
+          title: Project key
+          type: string
+          required: true
+          description: Key of the Jira project, for example ODDS.
+        versionName:
+          title: Version
+          type: string
+          required: false
+          description: Name of one version to focus on. Leave empty for all unreleased
+            versions.
+    - key: record-forecast
+      name: Record a forecast
+      function: recordForecast
+      actionVerb: CREATE
+      description: Records the user's own probability that a version ships by its
+        current release date, so it can be scored when the version is released
+        or its date passes.
+      inputs:
+        projectKey:
+          title: Project key
+          type: string
+          required: true
+          description: Key of the Jira project.
+        versionName:
+          title: Version
+          type: string
+          required: true
+          description: Name of the unreleased version.
+        probability:
+          title: Probability
+          type: number
+          required: true
+          description: The user's probability that the version ships on time, from 0 to 1
+            (0.8 means 80%).
+    - key: get-ledger
+      name: Get forecast ledger
+      function: getLedger
+      actionVerb: GET
+      description: Scores of every forecaster on a Jira project, people and the model,
+        with Brier score, the score of always saying the base rate, and how
+        often things happened when each said they would.
+      inputs:
+        projectKey:
+          title: Project key
+          type: string
+          required: true
+          description: Key of the Jira project.
+  rovo:mcp:
+    - key: odds-mcp
+      name: Odds
+      tools:
+        - get-forecast
+        - get-ledger
+  scheduledTrigger:
+    - key: odds-daily
+      function: daily
+      interval: day
+  function:
+    - key: resolver
+      handler: index.handler
+    - key: getForecast
+      handler: index.getForecast
+    - key: recordForecast
+      handler: index.recordForecast
+    - key: getLedger
+      handler: index.getLedger
+    - key: daily
+      handler: index.daily
+      timeoutSeconds: 300
+resources:
+  - key: main
+    path: src/frontend/index.jsx
+  - key: agent-res
+    path: resource/agent
+permissions:
+  scopes:
+    - read:jira-work
+    - read:jira-user
+    - storage:app
+app:
+  runtime:
+    name: nodejs22.x
+  id: ari:cloud:ecosystem::app/e9d0f2eb-cb36-443a-a43c-3e5359d1a1c0
