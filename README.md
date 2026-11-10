@@ -24,7 +24,7 @@ People can record their own forecasts too. When a version ships or its date pass
 2. Open any Jira project with unreleased versions that have release dates, then choose **Apps → Odds** in the project sidebar.
 3. For the agent, open Rovo chat and choose **Odds**. Rovo must be available on the site.
 
-Odds needs a few weeks of resolved issues to simulate from. With less history it says so instead of guessing.
+Odds simulates from the issues resolved in the last 12 weeks, so a project with a few months of history gives the most useful numbers. If nothing was resolved in that window, it says so instead of guessing.
 
 ## Develop
 
