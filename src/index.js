@@ -67,7 +67,7 @@ export async function getLedger(payload) {
       name: r.name,
       resolvedForecasts: r.n,
       brier: r.brier.toFixed(3),
-      brierIfAlwaysBaseRate: r.baseline.toFixed(3),
+      brierIfAlwaysBaseRate: r.baseline === null ? 'not yet, every resolved forecast so far had the same outcome' : r.baseline.toFixed(3),
       averageSaid: pct(r.meanSaid),
       actuallyHappened: pct(r.meanHappened),
     })),

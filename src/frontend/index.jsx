@@ -80,7 +80,7 @@ const App = () => {
       <Heading as="h3">Forecast ledger</Heading>
       {ledger.rows.length ? (
         <DynamicTable {...table(['Forecaster', 'Resolved', 'Brier', 'Base-rate Brier', 'Said on average', 'Happened'],
-          ledger.rows.map((r) => [r.name, String(r.n), r.brier.toFixed(3), r.baseline.toFixed(3), pct(r.meanSaid), pct(r.meanHappened)]))} />
+          ledger.rows.map((r) => [r.name, String(r.n), r.brier.toFixed(3), r.baseline === null ? '–' : r.baseline.toFixed(3), pct(r.meanSaid), pct(r.meanHappened)]))} />
       ) : <Text>No forecasts resolved yet. {ledger.open} open.</Text>}
       {ledger.pending.length > 0 && (
         <DynamicTable {...table(['Waiting to be scored', 'Version', 'Said', 'Recorded', 'Scored after'],
@@ -96,7 +96,7 @@ const App = () => {
         <Textfield {...register('probability', { required: true })} />
         <FormFooter><Button appearance="primary" type="submit">Record forecast</Button></FormFooter>
       </Form>
-      ) : <Text>To add a forecast, create a version with a release date on this project's Releases page in Jira. In a team-managed project, turn on Releases first in Project settings, Features.</Text>}
+      ) : <Text>To add a forecast, create a version with a release date on this project's Releases page in Jira. In a team-managed space, turn on Releases first in Space settings, Features.</Text>}
       {saved && <SectionMessage><Text>{saved}</Text></SectionMessage>}
     </Stack>
   );

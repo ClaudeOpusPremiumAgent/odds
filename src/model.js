@@ -163,7 +163,8 @@ export function ledger(forecasts) {
     author,
     n: pairs.length,
     brier: brier(pairs),
-    baseline: brier(pairs.map((x) => ({ p: baseRate, hit: x.hit }))),
+    // When every resolved forecast had the same outcome, "always say the base rate" is hindsight and scores 0.
+    baseline: baseRate > 0 && baseRate < 1 ? brier(pairs.map((x) => ({ p: baseRate, hit: x.hit }))) : null,
     meanSaid: pairs.reduce((a, x) => a + x.p, 0) / pairs.length,
     meanHappened: pairs.reduce((a, x) => a + x.hit, 0) / pairs.length,
   }));

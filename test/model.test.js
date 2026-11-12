@@ -105,6 +105,11 @@ test('ledger ranks by Brier and compares with always saying the base rate', () =
   assert.ok(l.rows.find((r) => r.author === 'pm').brier > l.rows.find((r) => r.author === 'pm').baseline);
 });
 
+test('ledger gives no base-rate score while every outcome is the same', () => {
+  const l = ledger([{ author: 'a', p: 0.7, outcome: 1 }]);
+  assert.equal(l.rows[0].baseline, null);
+});
+
 
 test('latestPerDay keeps one forecast per person, version and day', () => {
   const t = Date.UTC(2026, 10, 10, 15, 23);
