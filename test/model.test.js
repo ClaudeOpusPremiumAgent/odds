@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   weeklyThroughput, simulateWeeks, probabilityWithin, forecastVersion, backtest, reliability,
-  brier, resolveForecast, ledger, rng, cutToReach, latestPerDay, _test,
+  brier, resolveForecast, ledger, rng, cutToReach, latestPerDay, sampleTeam, _test,
 } from '../src/model.js';
 
 const { WEEK } = _test;
@@ -117,4 +117,14 @@ test('latestPerDay keeps one forecast per person, version and day', () => {
   ];
   const kept = latestPerDay(fs).map((f) => `${f.author}${f.versionId}:${f.p}`).sort();
   assert.deepEqual(kept, ['a1:0.7', 'a1:0.8', 'a2:0.5', 'b1:0.4']);
+});
+
+test('the sample team gives a real forecast and a replay check from today', () => {
+  const now = Date.UTC(2027, 0, 12);
+  const s = sampleTeam(now);
+  const v = s.versions[0];
+  const f = forecastVersion({ resolvedTimes: s.resolvedTimes, remaining: s.remaining[v.id], due: Date.parse(v.releaseDate), now });
+  assert.ok(f.probability > 0 && f.probability < 1, `probability ${f.probability}`);
+  assert.ok(s.versions.every((x) => Date.parse(x.releaseDate) > now));
+  assert.ok(backtest(s.resolvedTimes, now, { historyWeeks: 12, horizon: 4, origins: 26 }).length > 0);
 });

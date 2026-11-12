@@ -29,6 +29,7 @@ export async function getForecast(payload) {
   const cal = fc.calibration.rows.map((r) => `when it said ${pct(r.said)}, it happened ${pct(r.happened)} (${r.n} checks)`);
   return {
     project: key,
+    sampleTeam: fc.sample ? 'This project has no finished work in the last 12 weeks, so these numbers are for a made-up sample team, not this project.' : undefined,
     versions: wanted.map((v) => ({
       version: v.name,
       releaseDate: v.releaseDate,

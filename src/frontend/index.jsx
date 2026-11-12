@@ -26,7 +26,6 @@ const App = () => {
   if (!data) return <Text>Simulating your release dates…</Text>;
 
   const { forecast, ledger } = data;
-  const open = forecast.versions.filter((v) => v.releaseDate);
   const submit = async (form) => {
     if (!version) return setSaved('Pick a version first.');
     try {
@@ -38,7 +37,7 @@ const App = () => {
     }
   };
 
-  const next = open.find((v) => v.probability !== null);
+  const next = forecast.versions.find((v) => v.probability !== null);
   const worst = [...forecast.calibration.rows].sort((a, b) => Math.abs(b.said - b.happened) - Math.abs(a.said - a.happened))[0];
   const verdict = !worst ? null : Math.abs(worst.said - worst.happened) < 0.1
     ? 'Its stated chances have matched what happened within 10 points.'
@@ -46,6 +45,11 @@ const App = () => {
 
   return (
     <Stack space="space.300">
+      {forecast.sample && (
+        <SectionMessage appearance="information" title="You are looking at a sample team">
+          <Text>This project has no issues finished in the last 12 weeks, so Odds shows a made-up team to show how it works. Your own numbers appear as soon as issues here are resolved.</Text>
+        </SectionMessage>
+      )}
       {next && (
         <SectionMessage appearance={next.probability >= 0.8 ? 'success' : next.probability >= 0.5 ? 'warning' : 'error'} title={`${next.name} has a ${pct(next.probability)} chance of shipping by ${next.releaseDate}`}>
           <Text>{next.cutFor80 ? `To get to 80%, drop ${next.cutFor80} of the ${next.ahead} open issues ahead of it, or plan for ${next.sure85Date}, the date this team is 85% likely to make.` : 'It is on track at 80% or better.'}</Text>
@@ -84,13 +88,15 @@ const App = () => {
       )}
 
       <Heading as="h3">Add your forecast</Heading>
+      {forecast.recordable.length ? (
       <Form onSubmit={handleSubmit(submit)}>
         <Label labelFor="odds-version">Version</Label>
-        <Select inputId="odds-version" options={open.map((v) => ({ label: `${v.name} (${v.releaseDate})`, value: v.id }))} onChange={setVersion} />
+        <Select inputId="odds-version" options={forecast.recordable.map((v) => ({ label: `${v.name} (${v.releaseDate})`, value: v.id }))} onChange={setVersion} />
         <Label labelFor={getFieldId('probability')}>Your chance it ships by its release date, in %</Label>
         <Textfield {...register('probability', { required: true })} />
         <FormFooter><Button appearance="primary" type="submit">Record forecast</Button></FormFooter>
       </Form>
+      ) : <Text>Give an unreleased version in this project a release date to add a forecast.</Text>}
       {saved && <SectionMessage><Text>{saved}</Text></SectionMessage>}
     </Stack>
   );

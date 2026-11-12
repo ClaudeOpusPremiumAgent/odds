@@ -171,6 +171,23 @@ export function ledger(forecasts) {
   return { baseRate, rows, open: forecasts.length - done.length };
 }
 
+// A made-up team for projects with no finished work yet, so a new user sees what Odds does. Dated from `now`.
+export function sampleTeam(now) {
+  const rand = rng(20261109);
+  const end = now - (now % WEEK);
+  const resolvedTimes = [];
+  for (let back = 42; back >= 1; back--) {
+    const rate = back > 9 ? 5 : 3; // it slows down in the last 9 weeks, which the replay check should notice
+    const n = Math.max(0, Math.round(rate + (rand() + rand() + rand() - 1.5) * 2));
+    for (let i = 0; i < n; i++) resolvedTimes.push(end - back * WEEK + rand() * WEEK);
+  }
+  const date = (days) => new Date(now + days * DAY).toISOString().slice(0, 10);
+  const versions = [['1.6', 11, 9], ['1.7', 32, 14], ['2.0', 81, 26]]
+    .map(([name, days], i) => ({ id: `sample-${i}`, name, releaseDate: date(days), released: false, archived: false }));
+  const remaining = { 'sample-0': 9, 'sample-1': 14, 'sample-2': 26 };
+  return { versions, resolvedTimes, remaining };
+}
+
 // A person counts once per version per day: repeated clicks or a same-day change of mind keep only the latest.
 export function latestPerDay(forecasts) {
   const latest = new Map();

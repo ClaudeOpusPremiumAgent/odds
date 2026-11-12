@@ -1,6 +1,6 @@
 import { kvs, WhereConditions } from '@forge/kvs';
 import { versions, resolvedTimes, remainingByVersion, displayName } from './jira.js';
-import { forecastVersion, backtest, reliability, brier, resolveForecast, ledger, latestPerDay } from './model.js';
+import { forecastVersion, backtest, reliability, brier, resolveForecast, ledger, latestPerDay, weeklyThroughput, sampleTeam } from './model.js';
 
 const DAY = 86400000;
 const HISTORY_WEEKS = 12;
@@ -43,11 +43,15 @@ export async function knownProjects() {
 }
 
 export async function projectForecast(as, key, now = Date.now()) {
-  const [vs, times, remaining] = await Promise.all([
+  let [vs, times, remaining] = await Promise.all([
     versions(as, key),
     resolvedTimes(as, key, BACKTEST_WEEKS),
     remainingByVersion(as, key),
   ]);
+  // People forecast this project's own versions, even while the page shows the sample team.
+  const recordable = vs.filter((v) => !v.released && !v.archived && v.releaseDate).map(({ id, name, releaseDate }) => ({ id, name, releaseDate }));
+  const sample = weeklyThroughput(times, now, HISTORY_WEEKS).every((n) => n === 0);
+  if (sample) ({ versions: vs, resolvedTimes: times, remaining } = sampleTeam(now));
   // One team works through versions in release-date order, so a later version waits for the work before it.
   const open = vs.filter((v) => !v.released && !v.archived)
     .sort((a, b) => (a.releaseDate || '9999').localeCompare(b.releaseDate || '9999'));
@@ -64,6 +68,8 @@ export async function projectForecast(as, key, now = Date.now()) {
   const weekStart = now - (now % (7 * DAY));
   return {
     key,
+    sample,
+    recordable,
     versions: rows.map(({ samples, ...r }) => r),
     throughput: first ? first.samples : [],
     weekLabels: (first ? first.samples : []).map((_, i, a) => new Date(weekStart - (a.length - i) * 7 * DAY).toISOString().slice(5, 10)),
@@ -107,6 +113,7 @@ export async function modelSnapshot(key, now = Date.now()) {
   const week = isoWeek(now);
   const existing = new Set((await forecasts(key)).filter((f) => f.author === MODEL && isoWeek(f.at) === week).map((f) => f.versionId));
   const fc = await projectForecast('app', key, now);
+  if (fc.sample) return 0;
   let added = 0;
   for (const v of fc.versions) {
     if (v.probability === null || existing.has(v.id)) continue;
