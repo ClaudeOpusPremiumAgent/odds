@@ -50,6 +50,7 @@ export async function projectForecast(as, key, now = Date.now()) {
   ]);
   // People forecast this project's own versions, even while the page shows the sample team.
   const recordable = vs.filter((v) => !v.released && !v.archived && v.releaseDate).map(({ id, name, releaseDate }) => ({ id, name, releaseDate }));
+  const undated = vs.filter((v) => !v.released && !v.archived && !v.releaseDate).map((v) => v.name);
   const sample = weeklyThroughput(times, now, HISTORY_WEEKS).every((n) => n === 0);
   if (sample) ({ versions: vs, resolvedTimes: times, remaining } = sampleTeam(now));
   // One team works through versions in release-date order, so a later version waits for the work before it.
@@ -70,6 +71,7 @@ export async function projectForecast(as, key, now = Date.now()) {
     key,
     sample,
     recordable,
+    undated,
     versions: rows.map(({ samples, ...r }) => r),
     throughput: first ? first.samples : [],
     weekLabels: (first ? first.samples : []).map((_, i, a) => new Date(weekStart - (a.length - i) * 7 * DAY).toISOString().slice(5, 10)),

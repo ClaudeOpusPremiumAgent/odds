@@ -97,6 +97,7 @@ const App = () => {
         <FormFooter><Button appearance="primary" type="submit">Record forecast</Button></FormFooter>
       </Form>
       ) : <Text>To add a forecast, this space needs an unreleased version with a release date. On the Releases tab, click Create release and pick a release date in the calendar, then reload this page. If there is no Releases tab, click + at the end of the tabs at the top and add Releases.</Text>}
+      {forecast.undated.length > 0 && <Text>{`No release date yet, so no forecast: ${forecast.undated.join(', ')}. Set one on the Releases tab (··· next to the version, Edit, Release date), then reload this page.`}</Text>}
       {saved && <SectionMessage><Text>{saved}</Text></SectionMessage>}
     </Stack>
   );
