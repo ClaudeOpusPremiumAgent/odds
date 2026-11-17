@@ -24,6 +24,7 @@ People record their own forecasts on the page or in Rovo chat. When a version sh
 3. **New project, no history?** Odds says so and shows a clearly labelled sample team, so you can see the forecast, the replay check and the chart straight away. Your own numbers appear once issues in the project are resolved.
 4. **Test the ledger in under a minute:** in the space, open the **Releases** tab and create a version (in a team-managed space without that tab, click **+** at the end of the tabs at the top and add **Releases**) with a release date a week from now. On the Odds page, pick that version under "Add your forecast", enter for example `70` and click **Record forecast**. It appears under "Waiting to be scored". Now release the version in Jira (Releases, then Release) and reload Odds: the forecast is scored and you appear in the ledger with your Brier score.
 5. **Rovo agent** (needs a site with Rovo; everything above works without it): open Rovo chat, choose the **Odds** agent and ask "Which versions in project KEY are at risk?" (use your project key). To record a forecast, say "I think VERSION in project KEY has a 60% chance to ship on time"; Rovo asks you to confirm before anything is saved. Rovo must be available on the site.
+6. **Any MCP client** (needs a site admin, no Rovo needed): in Atlassian Administration > Apps > Sites > your site > Connected apps > Odds, turn on **Expose tools to MCP-compatible apps**. Add `https://mcp.atlassian.com/forge/e9d0f2eb-cb36-443a-a43c-3e5359d1a1c0` as a remote MCP server (Claude Code: `claude mcp add --transport http odds <that URL>`, then `/mcp` and Authenticate), approve the consent screen and ask "What are the release odds for project KEY, and show the forecast ledger." The tools are `get-forecast` and `get-ledger`. [skills/odds/SKILL.md](skills/odds/SKILL.md) is an open-source skill that tells an agent how to use and explain them.
 
 Odds only reads Jira. It never changes issues or versions.
 
@@ -44,7 +45,7 @@ The same idea of forecasting from throughput is used by other tools. What Odds a
 |---|---|
 | `jira:projectPage` (UI Kit) | The Odds page: headline, release table, throughput chart, replay check, ledger, forecast form |
 | `rovo:agent` with three `action`s | Odds agent in Rovo chat: get-forecast, record-forecast (asks for confirmation), get-ledger |
-| `rovo:mcp` | Exposes get-forecast and get-ledger as MCP tools (Preview) |
+| `rovo:mcp` | Exposes get-forecast and get-ledger as MCP tools to Rovo Studio agents and external MCP clients (Preview), read-only; [SKILL.md](skills/odds/SKILL.md) for third-party agents |
 | `scheduledTrigger` (daily) | Scores due forecasts and records the model's weekly forecast |
 
 Jira data is read through the REST API (`/rest/api/3/search/jql`, project versions); forecasts live in Forge key-value storage. Scopes: `read:jira-work`, `read:jira-user`, `storage:app`. The app makes no calls outside Atlassian.
