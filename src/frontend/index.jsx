@@ -96,7 +96,7 @@ const App = () => {
         <Textfield {...register('probability', { required: true })} />
         <FormFooter><Button appearance="primary" type="submit">Record forecast</Button></FormFooter>
       </Form>
-      ) : <Text>To add a forecast, create a version with a release date on this space's Releases tab in Jira. If there is no Releases tab, click + at the end of the tabs at the top and add Releases.</Text>}
+      ) : <Text>To add a forecast, this space needs an unreleased version with a release date. On the Releases tab, click Create release and pick a release date in the calendar, then reload this page. If there is no Releases tab, click + at the end of the tabs at the top and add Releases.</Text>}
       {saved && <SectionMessage><Text>{saved}</Text></SectionMessage>}
     </Stack>
   );
