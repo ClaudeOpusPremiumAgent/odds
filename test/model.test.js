@@ -2,8 +2,17 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   weeklyThroughput, simulateWeeks, probabilityWithin, forecastVersion, backtest, reliability,
-  brier, resolveForecast, ledger, rng, cutToReach, latestPerDay, sampleTeam, _test,
+  brier, resolveForecast, ledger, rng, cutToReach, latestPerDay, sampleTeam, openForForecast, _test,
 } from '../src/model.js';
+
+test('a version can be forecast until the end of its release day, not after', () => {
+  const v = { name: '1.6', releaseDate: '2026-11-20', released: false };
+  assert.equal(openForForecast(v, Date.parse('2026-11-20T23:00:00Z')), true);
+  assert.equal(openForForecast(v, Date.parse('2026-11-21T00:00:01Z')), false);
+  assert.equal(openForForecast({ ...v, released: true }, Date.parse('2026-11-19T00:00:00Z')), false);
+  assert.equal(openForForecast({ ...v, archived: true }, Date.parse('2026-11-19T00:00:00Z')), false);
+  assert.equal(openForForecast({ name: 'x', released: false }, 0), false);
+});
 
 const { WEEK } = _test;
 const NOW = Date.UTC(2026, 10, 9, 12); // a Monday is not required; weeks are counted from the epoch

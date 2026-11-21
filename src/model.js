@@ -137,6 +137,11 @@ export function brier(pairs) {
   return pairs.reduce((a, x) => a + (x.p - x.hit) ** 2, 0) / pairs.length;
 }
 
+// People can forecast a version until the end of its release day; after that it is already scored as late.
+export function openForForecast(version, now) {
+  return !version.released && !version.archived && Boolean(version.releaseDate) && now < Date.parse(version.releaseDate) + DAY;
+}
+
 // A forecast resolves when its version is released (on time if released by the due date it was
 // made against) or when that date has passed without a release.
 export function resolveForecast(forecast, version, now) {

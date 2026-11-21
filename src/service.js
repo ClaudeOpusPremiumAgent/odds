@@ -1,6 +1,6 @@
 import { kvs, WhereConditions } from '@forge/kvs';
 import { versions, resolvedTimes, remainingByVersion, displayName } from './jira.js';
-import { forecastVersion, backtest, reliability, brier, resolveForecast, ledger, latestPerDay, weeklyThroughput, sampleTeam } from './model.js';
+import { forecastVersion, backtest, reliability, brier, resolveForecast, ledger, latestPerDay, weeklyThroughput, sampleTeam, openForForecast } from './model.js';
 
 const DAY = 86400000;
 const HISTORY_WEEKS = 12;
@@ -49,8 +49,9 @@ export async function projectForecast(as, key, now = Date.now()) {
     remainingByVersion(as, key),
   ]);
   // People forecast this project's own versions, even while the page shows the sample team.
-  const recordable = vs.filter((v) => !v.released && !v.archived && v.releaseDate).map(({ id, name, releaseDate }) => ({ id, name, releaseDate }));
+  const recordable = vs.filter((v) => openForForecast(v, now)).map(({ id, name, releaseDate }) => ({ id, name, releaseDate }));
   const undated = vs.filter((v) => !v.released && !v.archived && !v.releaseDate).map((v) => v.name);
+  const overdue = vs.filter((v) => !v.released && !v.archived && v.releaseDate && !openForForecast(v, now)).map((v) => v.name);
   const sample = weeklyThroughput(times, now, HISTORY_WEEKS).every((n) => n === 0);
   if (sample) ({ versions: vs, resolvedTimes: times, remaining } = sampleTeam(now));
   // One team works through versions in release-date order, so a later version waits for the work before it.
@@ -72,6 +73,7 @@ export async function projectForecast(as, key, now = Date.now()) {
     sample,
     recordable,
     undated,
+    overdue,
     versions: rows.map(({ samples, ...r }) => r),
     throughput: first ? first.samples : [],
     weekLabels: (first ? first.samples : []).map((_, i, a) => new Date(weekStart - (a.length - i) * 7 * DAY).toISOString().slice(5, 10)),
@@ -89,6 +91,7 @@ export async function record(as, key, versionRef, p, author, now = Date.now()) {
   const v = (await versions(as, key)).find((x) => x.id === String(versionRef) || x.name === versionRef);
   if (!v) throw new Error(`No version "${versionRef}" in project ${key}.`);
   if (v.released || !v.releaseDate) throw new Error(`Version ${v.name} is released or has no release date, so there is nothing to forecast.`);
+  if (!openForForecast(v, now)) throw new Error(`Version ${v.name} was due on ${v.releaseDate} and is not released, so it is already scored as late. Forecast a later version, or move its release date first.`);
   const entry = { versionId: v.id, versionName: v.name, due: v.releaseDate, p: prob, author, at: now };
   await kvs.set(`fc:${key}:${now}-${hash(author + v.id + now)}`, entry);
   await remember(key);
