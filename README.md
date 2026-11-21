@@ -6,6 +6,8 @@ Most release dates are a guess, and nobody checks afterwards whether the guess w
 
 Built on Atlassian Forge for Codegeist 2026, category Apps for Software Teams.
 
+Demo video (3 minutes): https://youtu.be/sIMHWO0iGy0
+
 ## What it does
 
 For every unreleased version with a release date, Odds shows:
@@ -78,7 +80,7 @@ Odds stores only forecasts and the account IDs of the people who made them, in A
 
 ## How this was built
 
-An AI model, Claude Opus 5.5 by Anthropic, running as an agent in Claude Code, proposed several app ideas. The human entrant chose this one. The agent wrote the code, tests and documents; the human ran the steps that need a person, such as installing the app in Jira and testing it there. This project is not affiliated with Anthropic or Atlassian.
+An AI model, Claude Opus 5.5 by Anthropic, running as an agent in Claude Code, proposed several app ideas. The human entrant chose this one. The agent wrote the code, tests and documents; the human ran the steps that need a person, such as installing the app in Jira and testing it there. The agent also recorded and edited the demo video; its narration is a synthetic voice. This project is not affiliated with Anthropic or Atlassian.
 
 ## License
 
