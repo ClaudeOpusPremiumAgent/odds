@@ -50,11 +50,15 @@ const App = () => {
           <Text>This project has no issues finished in the last 12 weeks, so Odds shows a made-up team to show how it works. Your own numbers appear as soon as issues here are resolved.</Text>
         </SectionMessage>
       )}
-      {next && (
+      {next && (!forecast.sample && forecast.overdue?.includes(next.name) ? (
+        <SectionMessage appearance="error" title={`${next.name} missed its release date, ${next.releaseDate}`}>
+          <Text>{`It still has ${next.remaining} open issues.${next.sure85Date ? ` This team is 85% likely to finish them by ${next.sure85Date}.` : ''} To forecast it again, move its release date on the Releases tab.`}</Text>
+        </SectionMessage>
+      ) : (
         <SectionMessage appearance={next.probability >= 0.8 ? 'success' : next.probability >= 0.5 ? 'warning' : 'error'} title={`${next.name} has a ${pct(next.probability)} chance of shipping by ${next.releaseDate}`}>
           <Text>{next.cutFor80 ? `To get to 80%, drop ${next.cutFor80} of the ${next.ahead} open issues ahead of it, or plan for ${next.sure85Date}, the date this team is 85% likely to make.` : 'It is on track at 80% or better.'}</Text>
         </SectionMessage>
-      )}
+      ))}
       <Text>Each unreleased version gets the chance it ships by its release date, simulated 5,000 times from how many issues this team actually finished per week over the last 12 weeks. Versions share one team, so each one waits for the open work in earlier versions. Forecasts from people and from the model are scored when versions ship.</Text>
 
       <Heading as="h3">Release odds</Heading>
