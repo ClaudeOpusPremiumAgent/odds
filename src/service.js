@@ -82,7 +82,9 @@ export async function projectForecast(as, key, now = Date.now()) {
 }
 
 export async function forecasts(key) {
-  return latestPerDay((await all(`fc:${key}:`)).map((r) => ({ id: r.key, ...r.value })));
+  // A forecast made after its release day already knows the answer, so it is not scored or shown.
+  return latestPerDay((await all(`fc:${key}:`)).map((r) => ({ id: r.key, ...r.value })))
+    .filter((f) => openForForecast({ releaseDate: f.due }, f.at));
 }
 
 export async function record(as, key, versionRef, p, author, now = Date.now()) {
@@ -119,9 +121,10 @@ export async function modelSnapshot(key, now = Date.now()) {
   const existing = new Set((await forecasts(key)).filter((f) => f.author === MODEL && isoWeek(f.at) === week).map((f) => f.versionId));
   const fc = await projectForecast('app', key, now);
   if (fc.sample) return 0;
+  const open = new Set(fc.recordable.map((v) => v.id));
   let added = 0;
   for (const v of fc.versions) {
-    if (v.probability === null || existing.has(v.id)) continue;
+    if (v.probability === null || existing.has(v.id) || !open.has(v.id)) continue;
     await kvs.set(`fc:${key}:${now}-${hash(MODEL + v.id)}`, { versionId: v.id, versionName: v.name, due: v.releaseDate, p: v.probability, author: MODEL, at: now });
     added += 1;
   }
